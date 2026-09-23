@@ -1,0 +1,180 @@
+// Migrates the legacy jagthorn `index.html` melody list into a typed catalog.
+//
+// It parses the <option> entries (value + label, grouped by the disabled
+// category headers) and cross-references the real files copied into
+// `public/` to decide which assets each melody actually has. The result is
+// written to `src/data/melodies.generated.ts`.
+//
+// Run with:  npm run generate:catalog
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const root = join(__dirname, '..')
+const publicDir = join(root, 'public')
+const legacyHtml = readFileSync(join(__dirname, 'legacy-index.html'), 'utf8')
+
+/** Normalise a legacy category header like `-- Bronzeprøven --` to a name. */
+const CATEGORY_LABELS = {
+  Bronzeprøven: 'Bronzeprøven',
+  Sølvprøven: 'Sølvprøven',
+  Guldprøven: 'Guldprøven',
+  Dulighedsprøve: 'Dulighedsprøve',
+  Andre: 'Andre',
+  'DM/FM': 'DM/FM',
+}
+
+function normaliseCategory(raw) {
+  const text = raw.replace(/-/g, '').trim()
+  if (/^Bronze/i.test(text)) return CATEGORY_LABELS.Bronzeprøven
+  if (/^Sølv/i.test(text)) return CATEGORY_LABELS.Sølvprøven
+  if (/^Guld/i.test(text)) return CATEGORY_LABELS.Guldprøven
+  if (/^Dulighed/i.test(text)) return CATEGORY_LABELS.Dulighedsprøve
+  if (/^Andre/i.test(text)) return CATEGORY_LABELS.Andre
+  if (/DM\/FM/i.test(text)) return CATEGORY_LABELS['DM/FM']
+  return text
+}
+
+/** Build a URL/file safe slug from a legacy value path. */
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/æ/g, 'ae')
+    .replace(/ø/g, 'oe')
+    .replace(/å/g, 'aa')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+/** Derive helpful tags (horn type / voice) from a value + label. */
+function deriveTags(value, label) {
+  const tags = new Set()
+  const hay = `${value} ${label}`
+  if (/(_FP\d|F\.?P\.?\s*\d|Fürst|Furst)/i.test(hay)) tags.add('Fürst Pless')
+  if (/(_PF|_PH|P\.?F\.?\s*\d|Parforce)/i.test(hay)) tags.add('Parforce')
+  if (/(4[_-]?stemmig|4-stemmig|tutti)/i.test(hay)) tags.add('Flerstemmig')
+  const voice = hay.match(/(?:F\.?P\.?|P\.?F\.?|FP|PF|PH)_?\s*(\d)/i)
+  if (voice) tags.add(`Stemme ${voice[1]}`)
+  return [...tags]
+}
+
+function publicPathIfExists(relative) {
+  return existsSync(join(publicDir, relative)) ? `/${relative}` : undefined
+}
+
+// --- Parse the legacy <select> options ------------------------------------
+const optionRe = /<option([^>]*)>([^<]*)<\/option>/gi
+let currentCategory = 'Andre'
+const melodies = []
+const seenIds = new Set()
+
+let match
+while ((match = optionRe.exec(legacyHtml)) !== null) {
+  const attrs = match[1]
+  const label = match[2].trim()
+  const valueMatch = attrs.match(/value="([^"]*)"/i)
+  const value = valueMatch ? valueMatch[1] : ''
+
+  // Disabled entries without a value are the category headers.
+  if (!value) {
+    if (/-- (.+) --/.test(label)) currentCategory = normaliseCategory(label)
+    continue
+  }
+
+  // Resolve assets from the real files on disk.
+  const audioSrc = publicPathIfExists(`audio/mp3/${value}.mp3`)
+  const sheetMusicSrc = publicPathIfExists(`audio/image/${value}.png`)
+  const videoMp4Src = publicPathIfExists(`video/${value}.mp4`)
+  // A couple of legacy webm files were saved with a `mp4.webm` suffix.
+  const videoWebmSrc =
+    publicPathIfExists(`video/${value}.webm`) ??
+    publicPathIfExists(`video/${value}mp4.webm`)
+
+  let id = slugify(value)
+  let unique = id
+  let n = 2
+  while (seenIds.has(unique)) unique = `${id}-${n++}`
+  id = unique
+  seenIds.add(id)
+
+  melodies.push({
+    id,
+    title: label,
+    category: currentCategory,
+    legacyPath: value,
+    audioSrc,
+    sheetMusicSrc,
+    videoMp4Src,
+    videoWebmSrc,
+    tags: deriveTags(value, label),
+  })
+}
+
+// Shared theory PDF (not per melody in the legacy material).
+const theoryPdf = publicPathIfExists('pdf/afs_3-nodelaesogblaes.pdf')
+
+// --- Emit the typed catalog -----------------------------------------------
+const categoryOrder = [
+  'Bronzeprøven',
+  'Sølvprøven',
+  'Guldprøven',
+  'Dulighedsprøve',
+  'Andre',
+  'DM/FM',
+]
+
+function toLiteral(value) {
+  return value === undefined ? 'undefined' : JSON.stringify(value)
+}
+
+const entries = melodies
+  .map((m) => {
+    const lines = [
+      `    id: ${toLiteral(m.id)},`,
+      `    title: ${toLiteral(m.title)},`,
+      `    category: ${toLiteral(m.category)},`,
+      `    legacyPath: ${toLiteral(m.legacyPath)},`,
+      m.audioSrc && `    audioSrc: ${toLiteral(m.audioSrc)},`,
+      m.sheetMusicSrc && `    sheetMusicSrc: ${toLiteral(m.sheetMusicSrc)},`,
+      m.videoMp4Src && `    videoMp4Src: ${toLiteral(m.videoMp4Src)},`,
+      m.videoWebmSrc && `    videoWebmSrc: ${toLiteral(m.videoWebmSrc)},`,
+      m.tags.length && `    tags: ${toLiteral(m.tags)},`,
+    ].filter(Boolean)
+    return `  {\n${lines.join('\n')}\n  },`
+  })
+  .join('\n')
+
+const header = `// AUTO-GENERATED by scripts/generate-catalog.mjs — do not edit by hand.
+// Run \`npm run generate:catalog\` after adding new assets to public/.
+import type { Melody } from '../types/melody'
+
+export const theoryPdfSrc: string | undefined = ${toLiteral(theoryPdf)}
+
+export const categoryOrder = ${JSON.stringify(categoryOrder, null, 2)
+    .replace(/\n/g, '\n')} as const
+
+export const melodies: Melody[] = [
+${entries}
+]
+`
+
+const outPath = join(root, 'src', 'data', 'melodies.generated.ts')
+writeFileSync(outPath, header, 'utf8')
+
+// Report a short summary to the console.
+const byCategory = melodies.reduce((acc, m) => {
+  acc[m.category] = (acc[m.category] ?? 0) + 1
+  return acc
+}, {})
+const missing = melodies.filter(
+  (m) => !m.audioSrc && !m.videoMp4Src && !m.videoWebmSrc,
+)
+console.log(`Wrote ${melodies.length} melodies to ${outPath}`)
+console.log('By category:', byCategory)
+if (missing.length) {
+  console.warn(
+    'Melodies with no playable asset:',
+    missing.map((m) => m.id),
+  )
+}

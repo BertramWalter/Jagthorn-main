@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Jagthorn">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#37703f"/>
+      <stop offset="1" stop-color="#1f3a29"/>
+    </linearGradient>
+    <linearGradient id="brass" x1="0.1" y1="0.05" x2="0.9" y2="0.95">
+      <stop offset="0" stop-color="#f6db93"/>
+      <stop offset="0.45" stop-color="#c9922f"/>
+      <stop offset="1" stop-color="#8f6417"/>
+    </linearGradient>
+    <linearGradient id="bell" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6db93"/>
+      <stop offset="1" stop-color="#a9781f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <g stroke-linecap="round" stroke-linejoin="round"
+     transform="translate(256 256) scale(0.72) translate(-312 -252)">
+    <!-- coiled tube -->
+    <circle cx="250" cy="288" r="116" fill="none" stroke="url(#brass)" stroke-width="42"/>
+
+    <!-- mouthpiece tube from upper-left of coil -->
+    <path d="M164 209 C 150 168 150 150 168 132"
+          fill="none" stroke="url(#brass)" stroke-width="30"/>
+    <!-- mouthpiece cup -->
+    <ellipse cx="171" cy="126" rx="24" ry="17" fill="url(#bell)" stroke="#8f6417" stroke-width="5"
+             transform="rotate(-32 171 126)"/>
+
+    <!-- flared bell from upper-right of coil -->
+    <path d="M320 196
+             C 356 150 404 108 452 104
+             C 486 101 494 140 476 172
+             C 462 198 420 222 352 226 Z"
+          fill="url(#bell)" stroke="#8f6417" stroke-width="6"/>
+    <!-- bell opening -->
+    <ellipse cx="456" cy="138" rx="34" ry="52" fill="#7a5410" stroke="#8f6417" stroke-width="4"
+             transform="rotate(48 456 138)"/>
+  </g>
+</svg>

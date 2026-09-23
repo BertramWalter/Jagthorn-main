@@ -1,0 +1,89 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/bertram.steglich-pet/GitRepos/Jagthorn/Jagthorn.AppHost/Jagthorn.AppHost.csproj": {}
+  },
+  "projects": {
+    "/Users/bertram.steglich-pet/GitRepos/Jagthorn/Jagthorn.AppHost/Jagthorn.AppHost.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/bertram.steglich-pet/GitRepos/Jagthorn/Jagthorn.AppHost/Jagthorn.AppHost.csproj",
+        "projectName": "Jagthorn.AppHost",
+        "projectPath": "/Users/bertram.steglich-pet/GitRepos/Jagthorn/Jagthorn.AppHost/Jagthorn.AppHost.csproj",
+        "packagesPath": "/Users/bertram.steglich-pet/.nuget/packages/",
+        "outputPath": "/Users/bertram.steglich-pet/GitRepos/Jagthorn/Jagthorn.AppHost/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/bertram.steglich-pet/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "framework": "net8.0",
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net8.0": {
+          "framework": "net8.0",
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Aspire.Dashboard.Sdk.osx-arm64": {
+              "target": "Package",
+              "version": "[9.5.2, )",
+              "autoReferenced": true
+            },
+            "Aspire.Hosting.AppHost": {
+              "target": "Package",
+              "version": "[9.5.2, )"
+            },
+            "Aspire.Hosting.NodeJs": {
+              "target": "Package",
+              "version": "[9.5.2, )"
+            },
+            "Aspire.Hosting.Orchestration.osx-arm64": {
+              "target": "Package",
+              "version": "[9.5.2, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/Users/bertram.steglich-pet/.dotnet/sdk/10.0.401/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
