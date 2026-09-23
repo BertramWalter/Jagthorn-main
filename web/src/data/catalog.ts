@@ -2,11 +2,24 @@ import type { Melody } from '../types/melody'
 import {
   melodies as generatedMelodies,
   categoryOrder,
-  theoryPdfSrc,
+  theoryPdfSrc as generatedTheoryPdfSrc,
 } from './melodies.generated'
+import { resolveAssetUrl } from '../utils/asset'
 
-export const melodies: Melody[] = generatedMelodies
-export { categoryOrder, theoryPdfSrc }
+// The generated catalog stores root-absolute asset paths. Resolve them against
+// the app base URL so audio, sheet music, video and PDFs load under the GitHub
+// Pages sub-path (`/Jagthorn-main/`) as well as locally.
+export const melodies: Melody[] = generatedMelodies.map((melody) => ({
+  ...melody,
+  audioSrc: resolveAssetUrl(melody.audioSrc),
+  sheetMusicSrc: resolveAssetUrl(melody.sheetMusicSrc),
+  videoMp4Src: resolveAssetUrl(melody.videoMp4Src),
+  videoWebmSrc: resolveAssetUrl(melody.videoWebmSrc),
+  pdfSrc: resolveAssetUrl(melody.pdfSrc),
+}))
+
+export const theoryPdfSrc = resolveAssetUrl(generatedTheoryPdfSrc)
+export { categoryOrder }
 
 const byId = new Map(melodies.map((m) => [m.id, m]))
 
